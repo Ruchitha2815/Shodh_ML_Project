@@ -1,104 +1,98 @@
+# Loan Default Prediction using MLP
 
-Lending Club Loan Default Prediction (EDA + PyTorch MLP)
+## Overview
+This project builds a machine learning pipeline for **Loan Default Prediction** using a **Multi-Layer Perceptron (MLP)** model implemented in **PyTorch**.  
+The dataset undergoes extensive preprocessing, exploratory data analysis (EDA), feature encoding, and normalization before training.  
+The model is evaluated using **AUC** (Area Under the ROC Curve) and **F1-score** to assess its classification performance.
 
-Project Overview
+---
 
-This project aims to predict the likelihood of a loan default using the Lending Club dataset (2007-2018). The notebook performs a comprehensive Exploratory Data Analysis (EDA) to clean and prepare the data, followed by the implementation and training of a Multi-Layer Perceptron (MLP) neural network using PyTorch to classify loans.
+## Project Workflow
 
-Dataset
+### 1. Data Preprocessing
+The dataset contains various borrower, loan, and credit history features. The preprocessing steps include:
 
-The project uses the accepted_2007_to_2018Q4.csv.gz file from the Lending Club Loan Data dataset on Kaggle. This is a very large (over 2.2 million rows) and wide (over 150 columns) tabular dataset of peer-to-peer loans.
+- **Subsampling** the dataset to make processing manageable.
+- **Handling missing values** through imputation where necessary.
+- **Dropping columns** with more than **80% null values**.
+- **Creating a `region` column** by mapping each U.S. state to one of the following regions:
+  - North
+  - South
+  - East
+  - West
+  - Southeast
+  - Southwest
+- **Target Variable Creation**: 
+  - Loans labeled as `Fully Paid` are assigned **0**.
+  - All other loan statuses (e.g., `Charged Off`, `Late`, etc.) are assigned **1**.
 
-Workflow
+---
 
-The notebook follows these key steps:
+### 2. Exploratory Data Analysis (EDA)
 
-Data Loading: The large, compressed Gzip CSV is loaded into a pandas DataFrame.
+EDA was performed to understand feature distributions, correlations, and relationships with the target variable.
 
-Target Variable Definition: The loan_status column is used to create the binary target variable.
+Key visualizations include:
+- **Histplots** for numerical variables (e.g., `loan_amnt`, `int_rate`, `annual_inc`, etc.).
+- **Countplots** for categorical variables like `loan_status`, `home_ownership`, and `purpose`.
+- **Seaborn pairplots** to visualize relationships between key numeric variables such as **FICO scores** and loan amount.
+- **Boxplots** and **barplots** to explore the effect of categorical variables on loan status.
+- Computation of **median FICO score** from `fico_range_low` and `fico_range_high`.
 
-Charged Off loans are mapped to 1 (default).
+These analyses helped in feature selection, understanding class imbalance, and outlier detection.
 
-Fully Paid loans are mapped to 0 (non-default).
+---
 
-All other statuses (e.g., 'Current', 'Late') are filtered out as their final outcome is unknown.
+### 3. Feature Engineering
 
-Exploratory Data Analysis (EDA) & Feature Cleaning:
+- **Target Encoding** for categorical variables where applicable.
+- **One-Hot Encoding** using `pd.get_dummies()` for binary/multi-class categorical columns.
+- **Pairing categorical variables** wherever meaningful to create combined interaction features.
+- **Categorical Variable Classification**:
+  - **Binary variables:** e.g., `pymnt_plan_y`, `hardship_flag_Y`, etc.
+  - **Multi-class variables:** e.g., `grade`, `sub_grade`, `home_ownership`, `verification_status`, `purpose`, `addr_state`.
+- **Date Handling**: Date columns like `issue_d`, `earliest_cr_line`, `last_pymnt_d`, and `last_credit_pull_d` were properly formatted as datetime objects and excluded from scaling.
 
-Missing Values: Columns with a high percentage of missing data are identified and dropped.
+---
 
-Irrelevant Features: Columns that are not useful for prediction (like unique IDs, free text) are removed.
+### 4. Train-Test Split
 
-Data Leakage: Features that "leak" information from the future are removed (e.g., total_pymnt, last_pymnt_d). These are columns that would not be available at the time of the loan application.
+- The dataset is split into:
+  - **Training set:** 80%
+  - **Test set:** 20%
+- `X_train`, `X_test`, `y_train`, and `y_test` are prepared with consistent columns after encoding.
 
-Feature Engineering:
+---
 
-Date columns (like earliest_cr_line) are converted into numerical features (e.g., length of credit history).
+### 5. Feature Scaling
 
-Categorical string columns (like emp_length) are mapped to numerical values.
+- Numerical columns were standardized using **`StandardScaler`**.
+- Only numeric columns (excluding date and categorical ones) were scaled.
+- The same scaling parameters (mean, std) were applied to both training and test data.
 
-Remaining categorical features (like purpose, home_ownership) are one-hot encoded.
+---
 
-Remaining missing values in key features are imputed (e.g., using the median).
+### 6. Model Architecture: Multi-Layer Perceptron (MLP)
 
-Preprocessing for Deep Learning:
+The MLP model is a fully connected neural network implemented in PyTorch with:
+- Input layer matching the number of features
+- Two hidden layers with ReLU activation
+- Output layer using a Sigmoid activation for binary classification
 
-The final feature set is split into training and testing sets.
+**Loss Function:** `BCELoss`  
+**Optimizer:** `Adam`  
+**Metrics:** AUC and F1-score
 
-All features are scaled using StandardScaler to normalize the data, which is crucial for neural network performance.
+---
 
-Model Training (PyTorch):
+### 7. Model Training and Evaluation
 
-A custom Dataset and DataLoader are created to feed the data to the model in batches.
+The model was trained using:
+- Batch-wise training on the training data
+- Validation on the test data after training
 
-A simple Multi-Layer Perceptron (MLP) architecture is defined.
+Evaluation metrics:
+- **AUC (Area Under ROC Curve):** Measures separability between default and non-default classes.
+- **F1-score:** Balances precision and recall, suitable for imbalanced datasets.
 
-The model is trained for 10 epochs using Binary Cross-Entropy (BCE) Loss and the Adam optimizer.
-
-Evaluation:
-
-The trained model is evaluated on the unseen test set.
-
-The ROC AUC Score and F1-Score are calculated to measure the model's performance.
-
-Model Architecture
-
-The model is a feed-forward neural network (MLP) built with PyTorch. A typical architecture for this task, as implemented in the notebook, would look like this:
-
-Input Layer (size = number of features)
-
-Hidden Layer 1 (e.g., 128 neurons) + ReLU Activation
-
-Dropout (for regularization)
-
-Hidden Layer 2 (e.g., 64 neurons) + ReLU Activation
-
-Dropout
-
-Output Layer (1 neuron) + Sigmoid Activation (to output a probability between 0 and 1)
-
-Results
-
-The model was trained for 10 epochs, with the training loss steadily decreasing. The final performance is measured on the test set using two key metrics:
-
-Test ROC AUC Score: Measures the model's ability to distinguish between default and non-default loans.
-
-Test F1-Score: Provides a balanced measure of precision and recall, which is important for an imbalanced dataset.
-
-How to Run
-
-Environment: Ensure you have a Python environment with the following libraries installed:
-
-pandas
-
-numpy
-
-scikit-learn
-
-torch (PyTorch)
-
-Data: Download the accepted_2007_to_2018Q4.csv.gz file from the Kaggle dataset linked above.
-
-Path: Make sure the path to the data in the notebook matches its location on your system (e.g., /kaggle/input/lending-club/accepted_2007_to_2018Q4.csv.gz).
-
-Execute: Run the cells in the shodh-ml-eda-dl (2).ipynb notebook sequentially. A GPU is recommended for faster training.
+Typical output:
