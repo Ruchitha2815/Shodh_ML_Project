@@ -22,6 +22,8 @@ The dataset contains various borrower, loan, and credit history features. The pr
   - West
   - Southeast
   - Southwest
+  - Northeast
+  - Midwest
 - **Target Variable Creation**: 
   - Loans labeled as `Fully Paid` are assigned **0**.
   - All other loan statuses (e.g., `Charged Off`, `Late`, etc.) are assigned **1**.
@@ -95,4 +97,3 @@ Evaluation metrics:
 - **AUC (Area Under ROC Curve):** Measures separability between default and non-default classes.
 - **F1-score:** Balances precision and recall, suitable for imbalanced datasets.
 
-Typical output:
